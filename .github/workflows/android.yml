@@ -3,6 +3,8 @@ name: HTML to APK Build
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -13,24 +15,28 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 18
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
 
     - name: Install Capacitor and Dependencies
       run: |
         npm init -y
         npm install @capacitor/core @capacitor/cli @capacitor/android
-        mkdir www
-        cp inbox.html www/index.html  # আপনার ফাইলটিকে মেইন ফাইল হিসেবে কপি করা হচ্ছে
+        mkdir -p www
+        cp inbox.html www/index.html || echo "inbox.html not found, skipping copy"
         npx cap init "NKHESPORTS" "com.nkh.app" --web-dir www
         npx cap add android
 
-    - name: set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+    - name: Clean Gradle Cache
+      run: |
+        rm -rf ~/.gradle/caches
 
     - name: Build Android Project
       run: |
